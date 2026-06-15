@@ -14,7 +14,6 @@ import (
 
 // @title						Go Finance Server
 // @version					1.0
-// @host						localhost:8080
 // @BasePath					/
 // @description				Server to answer Stock related queries
 //
