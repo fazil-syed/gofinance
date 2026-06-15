@@ -59,7 +59,10 @@ func (h *Handler) GetPriceAtDayHandler(w http.ResponseWriter, r *http.Request) {
 
 	params := &chart.Params{Symbol: symbol, Interval: datetime.OneDay, Start: datetime.FromUnix(int(startOfDay.Unix())), End: datetime.FromUnix(int(endOfDay.Unix()))}
 	iter := chart.Get(params)
-	iter.Next()
+	if !iter.Next() {
+		http.Error(w, "No Data found for given date", http.StatusNotFound)
+		return
+	}
 	price := iter.Bar().Close
 
 	currency := iter.Meta().Currency
