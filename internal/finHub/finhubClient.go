@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -52,7 +53,7 @@ func (f *FinHubClient) Call(method string, url string, response any) error {
 }
 
 func (f *FinHubClient) SearchSymbol(company string) (string, error) {
-	searchURL := fmt.Sprintf("%s/search?q=%s&exchange=US", f.BaseURL, company)
+	searchURL := fmt.Sprintf("%s/search?q=%s", f.BaseURL, url.QueryEscape(company))
 	var searchResult SymbolSearchResult
 
 	err := f.Call("GET", searchURL, &searchResult)

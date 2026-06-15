@@ -1,58 +1,36 @@
 package main
 
 import (
+	_ "fazil-syed/gofinance/docs"
 	"fazil-syed/gofinance/internal/config"
-	finhub "fazil-syed/gofinance/internal/finHub"
+	"fazil-syed/gofinance/internal/handlers"
+	"fazil-syed/gofinance/internal/middleware"
 	"fmt"
 	"log"
-	"time"
+	"net/http"
 
-	"github.com/piquette/finance-go/chart"
-	"github.com/piquette/finance-go/datetime"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title						Go Finance Server
+// @version					1.0
+// @host						localhost:8080
+// @BasePath					/
+// @description				Server to answer Stock related queries
+//
+// @securitydefinitions.basic	BasicAuth
 func main() {
-
 	cfg, err := config.LoadConfig(".")
+	port := 8080
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
+	handler := handlers.NewHandler(cfg)
+	authMiddleWare := middleware.NewAuthMiddleWare(cfg)
 
-	finhubClient := finhub.NewFinHubClient(cfg.Finnhub.APIKey, cfg.Finnhub.BaseURL)
+	http.Handle("/swagger/", httpSwagger.WrapHandler)
 
-	symbol, err := finhubClient.SearchSymbol("Apple")
-	if err != nil {
-		log.Fatalf("Error %v", err)
-	}
-
-	fmt.Printf("Symbol : %s\n", symbol)
-	date := "2026-06-12T11:20:00Z"
-
-	dateParsed, err := time.Parse(time.RFC3339, date)
-
-	if err != nil {
-		log.Fatalf("Error %v", err)
-	}
-	startOfDay := dateParsed.Truncate(24 * time.Hour)
-
-	endOfDay := startOfDay.AddDate(0, 0, 1).Add(-time.Second)
-
-	params := &chart.Params{Symbol: symbol, Interval: datetime.OneDay, Start: datetime.FromUnix(int(startOfDay.Unix())), End: datetime.FromUnix(int(endOfDay.Unix()))}
-	iter := chart.Get(params)
-	iter.Next()
-	price := iter.Bar().Close
-
-	if err := iter.Err(); err != nil {
-		log.Fatalf("Error %v", err)
-	}
-
-	// price, err := finhubClient.GetStockPrice(symbol, date)
-
-	// if err != nil {
-	// 	log.Fatalf("Error %v", err)
-	// }
-
-	floatPrice, _ := price.Float64()
-
-	fmt.Printf("Price: %2.f\n", floatPrice)
+	http.HandleFunc("/price", authMiddleWare.BasicAuthMiddleWare(handler.GetPriceAtDayHandler))
+	log.Printf("server running on :%d", port)
+	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
