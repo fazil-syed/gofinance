@@ -1,0 +1,48 @@
+basePath: /
+definitions:
+  handlers.StockResponse:
+    properties:
+      currency:
+        type: string
+      exchange:
+        type: string
+      price:
+        type: number
+      symbol:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Server to answer Stock related queries
+  title: Go Finance Server
+  version: "1.0"
+paths:
+  /price:
+    get:
+      description: Fetch closing price of a company on any past date
+      parameters:
+      - description: 'Company Name '
+        in: query
+        name: company
+        type: string
+      - description: Date to fetch price at
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.StockResponse'
+      security:
+      - BasicAuth: []
+      summary: Get price of a stock at a given day
+      tags:
+      - Stock
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
