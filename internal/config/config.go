@@ -3,6 +3,11 @@ package config
 type Config struct {
 	Finnhub FinnhubConfig `mapstructure:"Finnhub"`
 	Auth    AuthConfig    `mapstructure:"AuthConfig"`
+	Server  ServerConfig  `mapstructure:"ServerConfig"`
+}
+
+type ServerConfig struct {
+	Port int `mapstructure:"Port"`
 }
 
 type FinnhubConfig struct {

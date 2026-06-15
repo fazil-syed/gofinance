@@ -21,10 +21,10 @@ import (
 // @securitydefinitions.basic	BasicAuth
 func main() {
 	cfg, err := config.LoadConfig(".")
-	port := 8080
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
+	port := cfg.Server.Port
 	handler := handlers.NewHandler(cfg)
 	authMiddleWare := middleware.NewAuthMiddleWare(cfg)
 
