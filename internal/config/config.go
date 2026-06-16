@@ -8,19 +8,19 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port int `mapstructure:"Port"`
+	Port int `mapstructure:"Port" validate:"required"`
 }
 
 type FinnhubConfig struct {
-	APIKey  string `mapstructure:"ApiKey"`
-	BaseURL string `mapstructure:"BaseURL"`
+	APIKey  string `mapstructure:"ApiKey" validate:"required"`
+	BaseURL string `mapstructure:"BaseURL" validate:"required"`
 }
 
 type AuthConfig struct {
-	UserName string `mapstructure:"UserName"`
-	PassWord string `mapstructure:"PassWord"`
+	UserName string `mapstructure:"UserName" validate:"required"`
+	PassWord string `mapstructure:"PassWord" validate:"required"`
 }
 
 type FrankFurterConfig struct {
-	BaseURL string `mapstructure:"BaseURL"`
+	BaseURL string `mapstructure:"BaseURL" validate:"required"`
 }
