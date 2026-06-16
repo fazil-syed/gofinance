@@ -17,6 +17,8 @@ type StockResponse struct {
 	Currency string  `json:"currency"`
 }
 
+var RedisTTL = 8766 * time.Hour
+
 // GetPriceAtDayHandler godoc
 //
 //	@Security		BasicAuth
@@ -53,6 +55,18 @@ func (h *Handler) GetPriceAtDayHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	key := fmt.Sprintf("gofinance:%s:%s", company, dateStr)
+
+	//search in cache
+	cached, err := h.redisClient.GetData(r.Context(), key)
+
+	if err == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(cached)
+		return
+	}
+
 	symbol, err := h.finhubClient.SearchSymbol(company)
 
 	if err != nil {
@@ -86,6 +100,14 @@ func (h *Handler) GetPriceAtDayHandler(w http.ResponseWriter, r *http.Request) {
 		Exchange: exchangeName,
 		Currency: currency,
 	}
+	// save to cache
+
+	data, err := json.Marshal(response)
+
+	if err == nil {
+		h.redisClient.SetData(r.Context(), key, data, RedisTTL)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -128,12 +150,31 @@ func (h *Handler) GetForexRatesAtDate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	key := fmt.Sprintf("gofinance:%s:%s", baseCurrency, dateStr)
+
+	//search in cache
+	cached, err := h.redisClient.GetData(r.Context(), key)
+
+	if err == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(cached)
+		return
+	}
+
 	forexRates, err := h.frankFurterClient.GetForexAtDate(baseCurrency, dateStr)
 
 	if err != nil {
 		fmt.Printf("%v", err)
 		http.Error(w, "Error fetching forex rates", http.StatusInternalServerError)
 		return
+	}
+	// save to cache
+
+	data, err := json.Marshal(forexRates)
+
+	if err == nil {
+		h.redisClient.SetData(r.Context(), key, data, RedisTTL)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
