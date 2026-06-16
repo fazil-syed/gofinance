@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -29,6 +30,11 @@ type StockResponse struct {
 //	@Success		200		{object}	StockResponse
 //	@Router			/price [get]
 func (h *Handler) GetPriceAtDayHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	company := r.URL.Query().Get("company")
 
 	if company == "" {
@@ -86,7 +92,54 @@ func (h *Handler) GetPriceAtDayHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error writing response", http.StatusInternalServerError)
 		return
 	}
+}
 
-	// res := fmt.Sprintf("Symbol : %s\nCurrency : %s\nExchange Name: %s\nPrice: %2.f\n", symbol, currency, exchangeName, floatPrice)
+// GetForexRatesAtDate godoc
+//
+//	@Security		BasicAuth
+//
+//	@Summary		Get forex rates of currencies against a base currency at a given day
+//	@Description	Fetch forex rates of 165 currencies against a base currency at a given day from 1949
+//	@Tags			Forex
+//	@Produce		json
+//	@Param			base_currency	query	string	false	"Base Currency "
+//	@Param			date			query	string	false	"Date to fetch forex rates at"
+//	@Success		200				{array}	frankfurter.Rate
+//	@Router			/forex [get]
+func (h *Handler) GetForexRatesAtDate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	baseCurrency := r.URL.Query().Get("base_currency")
+	if baseCurrency == "" {
+		http.Error(w, "missing base_currency param", http.StatusBadRequest)
+		return
+	}
 
+	dateStr := r.URL.Query().Get("date")
+	if dateStr == "" {
+		http.Error(w, "missing date param", http.StatusBadRequest)
+		return
+	}
+	_, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		http.Error(w, "Invalid date format", http.StatusBadRequest)
+		return
+	}
+
+	forexRates, err := h.frankFurterClient.GetForexAtDate(baseCurrency, dateStr)
+
+	if err != nil {
+		fmt.Printf("%v", err)
+		http.Error(w, "Error fetching forex rates", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(forexRates); err != nil {
+		http.Error(w, "Error writing response", http.StatusInternalServerError)
+		return
+	}
 }

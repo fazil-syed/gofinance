@@ -30,6 +30,7 @@ func main() {
 	http.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	http.HandleFunc("/price", authMiddleWare.BasicAuthMiddleWare(handler.GetPriceAtDayHandler))
+	http.HandleFunc("/forex", authMiddleWare.BasicAuthMiddleWare(handler.GetForexRatesAtDate))
 	log.Printf("server running on :%d", port)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }

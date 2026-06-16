@@ -8,6 +8,48 @@
     },
     "basePath": "/",
     "paths": {
+        "/forex": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "Fetch forex rates of 165 currencies against a base currency at a given day from 1949",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Forex"
+                ],
+                "summary": "Get forex rates of currencies against a base currency at a given day",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Base Currency ",
+                        "name": "base_currency",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date to fetch forex rates at",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/frankfurter.Rate"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/price": {
             "get": {
                 "security": [
@@ -49,6 +91,23 @@
         }
     },
     "definitions": {
+        "frankfurter.Rate": {
+            "type": "object",
+            "properties": {
+                "base": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "quote": {
+                    "type": "string"
+                },
+                "rate": {
+                    "type": "number"
+                }
+            }
+        },
         "handlers.StockResponse": {
             "type": "object",
             "properties": {
