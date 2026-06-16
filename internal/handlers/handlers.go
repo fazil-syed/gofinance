@@ -83,7 +83,12 @@ func (h *Handler) GetPriceAtDayHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No Data found for given date", http.StatusNotFound)
 		return
 	}
-	price := iter.Bar().Close
+	bar := iter.Bar()
+
+	price := bar.AdjClose
+	if price.IsZero() {
+		price = bar.Close
+	}
 
 	currency := iter.Meta().Currency
 
