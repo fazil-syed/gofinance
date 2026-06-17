@@ -17,7 +17,7 @@ type StockResponse struct {
 	Currency string  `json:"currency"`
 }
 
-var RedisTTL = 8766 * time.Hour
+var RedisTTL = 48 * time.Hour
 
 // GetPriceAtDayHandler godoc
 //
